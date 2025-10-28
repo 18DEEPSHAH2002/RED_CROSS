@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indian Red Cross Society - Ludhiana</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Base font */
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Custom style for the active nav link */
+        .nav-link.active {
+            color: white;
+            font-weight: 600;
+        }
+        
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Hide scrollbar */
+        body::-webkit-scrollbar {
+            display: none;
+        }
+        body {
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900">
+
+    <!-- Main Application Container -->
+    <div id="app">
+        <!-- Content will be rendered here by JavaScript -->
+    </div>
+
+    <!-- Main JavaScript Logic -->
+    <script>
+        // Wait for the DOM to be fully loaded
+        window.addEventListener('DOMContentLoaded', () => {
+            
+            // Main application element
+            const app = document.getElementById('app');
+
+            // --- STATE ---
+            // This object holds the "state" of our application,
+            // including the current page and selected activity.
+            let state = {
+                currentPage: 'home',
+                selectedActivityId: null,
+                isMenuOpen: false
+            };
+
+            // --- DATA ---
+            // This holds all the information for our activities.
+            // Replace with your real data.
+            const activitiesData = {
+                'bloodDrive': {
+                    id: 'bloodDrive',
+                    title: 'Blood Donation Drives',
+                    shortDesc: 'Saving lives, one pint at a time. Join our regular drives.',
+                    imageUrl: 'https://placehold.co/600x400/D80027/FFFFFF?text=Blood+Donation+Drive',
+                    longDesc: 'Our blood donation drives are a cornerstone of our community service in Ludhiana. We partner with local hospitals, colleges, and corporate offices to organize regular camps, ensuring a stable blood supply for those in need.',
+                    details: 'These drives are conducted with the highest standards of safety and hygiene. Every donor is screened, and our trained medical staff provides excellent care. By donating blood, you can save up to three lives. We also maintain a database of voluntary donors for emergency needs.'
+                },
+                'firstAid': {
+                    id: 'firstAid',
+                    title: 'First Aid Training',
+                    shortDesc: 'Learn life-saving skills with our certified workshops.',
+                    imageUrl: 'https://placehold.co/600x400/D80027/FFFFFF?text=First+Aid+Training',
+                    longDesc: 'Knowledge of first aid is essential for everyone. Our certified trainers conduct workshops for schools, communities, and workplaces, teaching critical skills like CPR, wound dressing, and managing common injuries.',
+                    details: 'We offer various modules, from basic one-day courses to comprehensive certification programs. Our goal is to empower every citizen of Ludhiana to be a first responder in an emergency, bridging the gap until professional medical help arrives.'
+                },
+                'disasterRelief': {
+                    id: 'disasterRelief',
+                    title: 'Disaster Relief & Preparedness',
+                    shortDesc: 'Preparing the community and responding to emergencies.',
+                    imageUrl: 'https://placehold.co/600x400/D80027/FFFFFF?text=Disaster+Relief',
+                    longDesc: 'Ludhiana, like any city, faces potential risks. Our disaster management team is trained to respond swiftly to emergencies, providing shelter, food, and medical aid. We also focus heavily on community preparedness.',
+                    details: 'This includes conducting mock drills in vulnerable areas, creating community awareness programs, and assembling emergency relief kits. We work closely with local authorities to ensure a coordinated and effective response.'
+                },
+                'healthCamps': {
+                    id: 'healthCamps',
+                    title: 'Community Health Camps',
+                    shortDesc: 'Bringing free medical check-ups to underserved areas.',
+                    imageUrl: 'https://placehold.co/600x400/D80027/FFFFFF?text=Health+Camp',
+                    longDesc: 'We believe healthcare is a right, not a privilege. Our mobile health camps travel to slums and remote areas of the Ludhiana district, offering free consultations, basic diagnostics, and essential medicines.',
+                    details: 'These camps are staffed by volunteer doctors, nurses, and pharmacists. We focus on general health, maternal and child care, and awareness about sanitation and nutrition, making a direct impact on community well-being.'
+                }
+            };
+            
+            // --- GALLERY DATA ---
+            // Replace these with your actual gallery image URLs
+            const galleryImages = [
+                'https://placehold.co/600x400/D80027/FFFFFF?text=Activity+Image+1',
+                'https://placehold.co/600x400/D80027/FFFFFF?text=Activity+Image+2',
+                'https://placehold.co/600x400/D80027/FFFFFF?text=Activity+Image+3',
+                'https://placehold.co/600x400/D80027/FFFFFF?text=Volunteers+Meeting',
+                'https://placehold.co/600x400/D80027/FFFFFF?text=Donation+Event',
+                'https://placehold.co/600x400/D80027/FFFFFF?text=Awareness+March',
+                'https://placehold.co/600x400/D80027/FFFFFF?text=First+Aid+Demo',
+                'https://placehold.co/600x400/D80027/FFFFFF?text=Relief+Distribution'
+            ];
+
+            // --- STATE MANAGEMENT ---
+            /**
+             * Updates the state and re-renders the application
+             * @param {object} newState - The new state properties to merge.
+             */
+            function setState(newState) {
+                // Merge old state with new state
+                state = { ...state, ...newState };
+                
+                // Re-render the entire UI
+                render();
+
+                // After rendering, scroll to the top of the page
+                // This simulates a new page load
+                window.scrollTo(0, 0);
+            }
+
+            // --- EVENT HANDLERS ---
+            /**
+             * Handles navigation link clicks
+             * @param {Event} e - The click event.
+             */
+            function handleNavClick(e) {
+                e.preventDefault();
+                const page = e.target.dataset.page;
+                if (page) {
+                    setState({ 
+                        currentPage: page, 
+                        selectedActivityId: null, // Reset activity ID on page change
+                        isMenuOpen: false // Close menu on navigation
+                    });
+                }
+            }
+            
+            /**
+             * Handles "Learn More" button clicks on activity cards
+             * @param {Event} e - The click event.
+             */
+            function handleActivityClick(e) {
+                const id = e.currentTarget.dataset.id;
+                setState({ 
+                    currentPage: 'activityDetail', 
+                    selectedActivityId: id 
+                });
+            }
+
+            /**
+             * Handles the "Back to Activities" button click
+             * @param {Event} e - The click event.
+             */
+            function handleBackToActivities(e) {
+                e.preventDefault();
+                setState({ 
+                    currentPage: 'activities', 
+                    selectedActivityId: null 
+                });
+            }
+
+            /**
+             * Toggles the mobile menu
+             */
+            function toggleMenu() {
+                setState({ isMenuOpen: !state.isMenuOpen });
+            }
+
+            // --- RENDER FUNCTIONS ---
+
+            /**
+             * Renders the main header and navigation bar
+             * @returns {string} HTML string for the header.
+             */
+            function renderHeader() {
+                const navLinks = [
+                    { key: 'home', text: 'Home' },
+                    { key: 'activities', text: 'Our Activity' },
+                    { key: 'gallery', text: 'Gallery' },
+                    { key: 'donate', text: 'Donate' },
+                    { key: 'about', text: 'About Us' },
+                    { key: 'contact', text: 'Contact Us' },
+                ];
+                
+                // Generate HTML for each nav link
+                const navLinksHtml = navLinks.map(link => `
+                    <a href="#" 
+                       class="nav-link text-sm font-medium uppercase tracking-wide text-red-100 hover:text-white transition-colors duration-200 py-2 ${state.currentPage === link.key ? 'active' : ''}" 
+                       data-page="${link.key}">
+                       ${link.text}
+                    </a>
+                `).join('');
+
+                return `
+                    <header class="bg-red-700 text-white shadow-md sticky top-0 z-50">
+                        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div class="flex justify-between items-center h-20">
+                                <!-- Logo Section -->
+                                <div class="flex-shrink-0 flex items-center">
+                                    <!-- Red Cross SVG Logo -->
+                                    <svg class="h-10 w-10" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+                                        <path d="M28,13H19V4c0-1.1-0.9-2-2-2h-2c-1.1,0-2,0.9-2,2v9H4c-1.1,0-2,0.9-2,2v2c0,1.1,0.9,2,2,2h9v9c0,1.1,0.9,2,2,2h2c1.1,0,2-0.9,2-2v-9h9c1.1,0,2-0.9,2-2v-2C30,13.9,29.1,13,28,13z"/>
+                                    </svg>
+                                    <span class="ml-3 text-xl font-bold tracking-tight">
+                                        Indian Red Cross <span class="font-light">Ludhiana</span>
+                                    </span>
+                                </div>
+                                
+                                <!-- Desktop Navigation -->
+                                <nav class="hidden md:flex md:items-center md:space-x-6">
+                                    ${navLinksHtml}
+                                </nav>
+                                
+                                <!-- Mobile Menu Button -->
+                                <div class="md:hidden flex items-center">
+                                    <button id="menu-toggle" class="inline-flex items-center justify-center p-2 rounded-md text-red-100 hover:text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
+                                        <span class="sr-only">Open main menu</span>
+                                        <!-- Hamburger Icon -->
+                                        <svg class="${state.isMenuOpen ? 'hidden' : 'block'} h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                                        </svg>
+                                        <!-- Close Icon -->
+                                        <svg class="${state.isMenuOpen ? 'block' : 'hidden'} h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mobile Menu, show/hide based on menu state -->
+                        <div class="${state.isMenuOpen ? 'block' : 'hidden'} md:hidden" id="mobile-menu">
+                            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                                ${navLinks.map(link => `
+                                    <a href="#" 
+                                       class="nav-link block px-3 py-2 rounded-md text-base font-medium text-red-100 hover:text-white hover:bg-red-600 ${state.currentPage === link.key ? 'active bg-red-800' : ''}" 
+                                       data-page="${link.key}">
+                                       ${link.text}
+                                    </a>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </header>
+                `;
+            }
+
+            /**
+             * Renders the content for the currently active page
+             * @returns {string} HTML string for the current page.
+             */
+            function renderPageContent() {
+                switch (state.currentPage) {
+                    case 'home':
+                        return renderHomePage();
+                    case 'activities':
+                        return renderActivitiesPage();
+                    case 'activityDetail':
+                        return renderActivityDetailPage(state.selectedActivityId);
+                    case 'gallery':
+                        return renderGalleryPage();
+                    case 'donate':
+                        return renderDonatePage();
+                    case 'about':
+                        return renderAboutPage();
+                    case 'contact':
+                        return renderContactPage();
+                    default:
+                        return renderHomePage();
+                }
+            }
+
+            /**
+             * Renders the Home page content
+             * @returns {string} HTML string for the Home page.
+             */
+            function renderHomePage() {
+                return `
+                    <!-- Hero Section -->
+                    <div class="relative bg-white overflow-hidden">
+                        <div class="max-w-7xl mx-auto">
+                            <div class="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
+                                <svg class="hidden lg:block absolute right-0 inset-y-0 h-full w-48 text-white transform translate-x-1/2" fill="currentColor" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                                    <polygon points="50,0 100,0 50,100 0,100" />
+                                </svg>
+                                <div class="relative pt-6 px-4 sm:px-6 lg:px-8"></div>
+                                <main class="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
+                                    <div class="sm:text-center lg:text-left">
+                                        <h1 class="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
+                                            <span class="block xl:inline">Welcome to the</span>
+                                            <span class="block text-red-700 xl:inline">Red Cross Ludhiana</span>
+                                        </h1>
+                                        <p class="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
+                                            Serving humanity in Ludhiana. We are dedicated to alleviating human suffering, protecting life and health, and upholding human dignity.
+                                        </p>
+                                        <div class="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
+                                            <div class="rounded-md shadow">
+                                                <a href="#" class="nav-link w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-red-700 hover:bg-red-800 md:py-4 md:text-lg md:px-10" data-page="donate">
+                                                    Donate Now
+                                                </a>
+                                            </div>
+                                            <div class="mt-3 sm:mt-0 sm:ml-3">
+                                                <a href="#" class="nav-link w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 md:py-4 md:text-lg md:px-10" data-page="activities">
+                                                    Our Activities
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </main>
+                            </div>
+                        </div>
+                        <div class="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
+                            <img class="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full" src="https://placehold.co/1000x800/D80027/FFFFFF?text=Red+Cross+Volunteers" alt="Red Cross Volunteers">
+                        </div>
+                    </div>
+                    
+                    <!-- Origin Story Section -->
+                    <div class="py-16 bg-gray-50 overflow-hidden">
+                        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div class="text-center">
+                                <h2 class="text-base font-semibold text-red-700 tracking-wide uppercase">Our Story</h2>
+                                <p class="mt-2 text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                                    The Origin of Red Cross in Ludhiana
+                                </p>
+                            </div>
+                            <div class="mt-12 prose prose-lg text-gray-600 mx-auto">
+                                <p>The Indian Red Cross Society, Ludhiana District Branch, has been a beacon of hope and selfless service for decades. Its journey began with a small group of dedicated individuals inspired by the global Red Cross movement's principles of Humanity, Impartiality, Neutrality, Independence, Voluntary Service, Unity, and Universality.</p>
+                                <p>Rooted in the industrial heart of Punjab, the Ludhiana branch quickly established itself as a vital first responder. From providing first aid during local festivals and industrial accidents to organizing the city's first voluntary blood donation camps, our mission has always been clear: to be there for the people of Ludhiana in their time of need.</p>
+                                <p>Over the years, our services have expanded to include disaster management, community health programs, and extensive first aid training, empowering thousands of citizens with life-saving skills. We are proud of our heritage and remain steadfast in our commitment to serving the community.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Links Section -->
+                    <div class="bg-white py-16">
+                        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                            <div class="p-6 rounded-lg">
+                                <img src="https://placehold.co/300x200/D80027/FFFFFF?text=Our+Mission" alt="Our Mission" class="w-full h-40 object-cover rounded-md mb-4 shadow-lg">
+                                <h3 class="text-xl font-semibold text-gray-900">Our Mission</h3>
+                                <p class="text-gray-600 mt-2">To inspire, encourage and initiate all forms of humanitarian activities.</p>
+                                <a href="#" class="nav-link text-red-700 font-medium mt-4 inline-block" data-page="about">Learn More &rarr;</a>
+                            </div>
+                            <div class="p-6 rounded-lg">
+                                <img src="https://placehold.co/300x200/D80027/FFFFFF?text=Get+Involved" alt="Get Involved" class="w-full h-40 object-cover rounded-md mb-4 shadow-lg">
+                                <h3 class="text-xl font-semibold text-gray-900">Get Involved</h3>
+                                <p class="text-gray-600 mt-2">Volunteer your time and skills to make a difference in your community.</p>
+                                <a href="#" class="nav-link text-red-700 font-medium mt-4 inline-block" data-page="contact">Contact Us &rarr;</a>
+                            </div>
+                            <div class="p-6 rounded-lg">
+                                <img src="https://placehold.co/300x200/D80027/FFFFFF?text=Donate" alt="Donate" class="w-full h-40 object-cover rounded-md mb-4 shadow-lg">
+                                <h3 class="text-xl font-semibold text-gray-900">Support Us</h3>
+                                <p class="text-gray-600 mt-2">Your contribution can help save lives and support our programs.</p>
+                                <a href="#" class="nav-link text-red-700 font-medium mt-4 inline-block" data-page="donate">Donate Now &rarr;</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            /**
+             * Renders the "Our Activity" page
+             * @returns {string} HTML string for the Activities page.
+             */
+            function renderActivitiesPage() {
+                // Generate a card for each activity
+                const activityCards = Object.values(activitiesData).map(activity => `
+                    <div class="flex flex-col rounded-lg shadow-lg overflow-hidden transition-transform duration-300 hover:scale-105">
+                        <div class="flex-shrink-0">
+                            <img class="h-48 w-full object-cover" src="${activity.imageUrl}" alt="${activity.title}">
+                        </div>
+                        <div class="flex-1 bg-white p-6 flex flex-col justify-between">
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-red-700">
+                                    Community Program
+                                </p>
+                                <h3 class="mt-2 text-xl font-semibold text-gray-900">
+                                    ${activity.title}
+                                </h3>
+                                <p class="mt-3 text-base text-gray-600">
+                                    ${activity.shortDesc}
+                                </p>
+                            </div>
+                            <div class="mt-6">
+                                <button class="view-activity-btn w-full flex items-center justify-center px-5 py-2 border border-transparent text-base font-medium rounded-md text-white bg-red-700 hover:bg-red-800" data-id="${activity.id}">
+                                    Learn More
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                return `
+                    <div class="bg-gray-50 py-16">
+                        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div class="text-center">
+                                <h2 class="text-base font-semibold text-red-700 tracking-wide uppercase">What We Do</h2>
+                                <p class="mt-2 text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                                    Our Activities
+                                </p>
+                                <p class="mt-4 max-w-2xl mx-auto text-xl text-gray-600">
+                                    Our work is diverse and impacts all corners of the Ludhiana community. Explore our key programs below.
+                                </p>
+                            </div>
+                            
+                            <div class="mt-12 max-w-lg mx-auto grid gap-8 lg:grid-cols-2 lg:max-w-none">
+                                ${activityCards}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            /**
+             * Renders the detailed page for a specific activity
+             * @param {string} activityId - The ID of the activity to display.
+             * @returns {string} HTML string for the Activity Detail page.
+             */
+            function renderActivityDetailPage(activityId) {
+                const activity = activitiesData[activityId];
+                if (!activity) {
+                    return renderActivitiesPage(); // Fallback if ID is invalid
+                }
+                
+                return `
+                    <div class="bg-white py-16">
+                        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <!-- Back Button -->
+                            <div class="mb-8">
+                                <a href="#" id="back-to-activities" class="text-base font-medium text-red-700 hover:text-red-900">
+                                    &larr; Back to All Activities
+                                </a>
+                            </div>
+                            
+                            <!-- Activity Content -->
+                            <h1 class="text-4xl font-extrabold text-gray-900">${activity.title}</h1>
+                            <img class="w-full h-96 object-cover rounded-lg my-8 shadow-lg" src="${activity.imageUrl}" alt="${activity.title}">
+                            
+                            <div class="prose prose-lg text-gray-600 max-w-none">
+                                <p class="lead text-xl">${activity.longDesc}</p>
+                                <p>${activity.details}</p>
+                                
+                                <h3>Get Involved</h3>
+                                <p>If you are interested in volunteering for this program or learning more, please get in touch with our office. We are always looking for dedicated individuals to join our cause.</p>
+                            </div>
+
+                            <div class="mt-12">
+                                <a href="#" class="nav-link inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-red-700 hover:bg-red-800" data-page="contact">
+                                    Contact Us to Volunteer
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            /**
+             * Renders the Gallery page
+             * @returns {string} HTML string for the Gallery page.
+             */
+            function renderGalleryPage() {
+                const imageHtml = galleryImages.map(src => `
+                    <li class="relative">
+                        <div class="group block w-full aspect-w-10 aspect-h-7 rounded-lg bg-gray-100 overflow-hidden shadow-lg">
+                            <img src="${src}" alt="Red Cross Ludhiana activity" class="object-cover pointer-events-none group-hover:opacity-75 transition-opacity duration-300">
+                        </div>
+                    </li>
+                `).join('');
+                
+                return `
+                    <div class="bg-white py-16">
+                        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div class="text-center">
+                                <h2 class="text-base font-semibold text-red-700 tracking-wide uppercase">Our Moments</h2>
+                                <p class="mt-2 text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                                    Activity Gallery
+                                </p>
+                                <p class="mt-4 max-w-2xl mx-auto text-xl text-gray-600">
+                                    A glimpse into our humanitarian work in and around Ludhiana.
+                                </p>
+                            </div>
+                            
+                            <ul role="list" class="mt-12 grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2 sm:gap-x-6 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-8">
+                                ${imageHtml}
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            }
+
+            /**
+             * Renders the Donate page
+             * @returns {string} HTML string for the Donate page.
+             */
+            function renderDonatePage() {
+                return `
+                    <div class="bg-gray-50 py-16">
+                        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div class="text-center">
+                                <h2 class="text-base font-semibold text-red-700 tracking-wide uppercase">Support Us</h2>
+                                <p class="mt-2 text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                                    Make a Donation
+                                </p>
+                                <p class="mt-4 max-w-2xl mx-auto text-xl text-gray-600">
+                                    Your generous contribution helps us continue our life-saving work in the Ludhiana community. Every rupee counts.
+                                </p>
+                            </div>
+                            
+                            <div class="mt-12 bg-white p-8 sm:p-10 rounded-lg shadow-xl">
+                                <h3 class="text-2xl font-semibold text-gray-900 mb-6 text-center">Bank Transfer Details</h3>
+                                <div class="space-y-4">
+                                    <div class="flex flex-col sm:flex-row justify-between p-4 bg-gray-50 rounded-md">
+                                        <span class="font-medium text-gray-800">Account Name:</span>
+                                        <span class="text-gray-700 sm:text-right font-mono">Indian Red Cross Society, Ludhiana</span>
+                                    </div>
+                                    <div class="flex flex-col sm:flex-row justify-between p-4 bg-gray-50 rounded-md">
+                                        <span class="font-medium text-gray-800">Bank Name:</span>
+                                        <span class="text-gray-700 sm:text-right font-mono">State Bank of India</span>
+                                    </div>
+                                    <div class="flex flex-col sm:flex-row justify-between p-4 bg-gray-50 rounded-md">
+                                        <span class="font-medium text-gray-800">Branch:</span>
+                                        <span class="text-gray-700 sm:text-right font-mono">Civil Lines, Ludhiana</span>
+                                    </div>
+                                    <div class="flex flex-col sm:flex-row justify-between p-4 bg-gray-50 rounded-md">
+                                        <span class="font-medium text-gray-800">Account Number:</span>
+                                        <span class="text-gray-700 sm:text-right font-mono">12345678901</span>
+                                    </div>
+                                    <div class="flex flex-col sm:flex-row justify-between p-4 bg-gray-50 rounded-md">
+                                        <span class="font-medium text-gray-800">IFSC Code:</span>
+                                        <span class="text-gray-700 sm:text-right font-mono">SBIN0001234</span>
+                                    </div>
+                                </div>
+                                <p class="mt-8 text-center text-gray-600">
+                                    Donations are eligible for tax exemption under Section 80G of the Income Tax Act. Please email us your transaction details to receive a receipt.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            /**
+             * Renders the About Us page
+             * @returns {string} HTML string for the About page.
+             */
+            function renderAboutPage() {
+                return `
+                    <div class="bg-white py-16">
+                        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div class="text-center">
+                                <h2 class="text-base font-semibold text-red-700 tracking-wide uppercase">Who We Are</h2>
+                                <p class="mt-2 text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                                    About Us
+                                </p>
+                            </div>
+                            
+                            <div class="mt-12 prose prose-lg text-gray-600 max-w-none">
+                                <h3>Our Mission</h3>
+                                <p>The Indian Red Cross Society, Ludhiana Branch, is a voluntary humanitarian organization dedicated to alleviating human suffering, protecting life and health, and upholding human dignity, especially during armed conflicts and other emergencies. We are committed to providing a wide range of services to the most vulnerable members of our community.</p>
+                                
+                                <h3>Our Principles</h3>
+                                <p>Our work is guided by the seven fundamental principles of the Red Cross and Red Crescent Movement:</p>
+                                <ul>
+                                    <li><strong>Humanity:</strong> To prevent and alleviate human suffering wherever it may be found.</li>
+                                    <li><strong>Impartiality:</strong> To make no discrimination as to nationality, race, religious beliefs, class or political opinions.</li>
+                                    <li><strong>Neutrality:</strong> To enjoy the confidence of all, the Movement may not take sides in hostilities or engage at any time in controversies of a political, racial, religious or ideological nature.</li>
+                                    <li><strong>Independence:</strong> The Movement is independent. The National Societies must always maintain their autonomy.</li>
+                                    <li><strong>Voluntary Service:</strong> It is a voluntary relief movement not prompted in any manner by desire for gain.</li>
+                                    <li><strong>Unity:</strong> There can be only one Red Cross Society in any one country.</li>
+                                    <li><strong>Universality:</strong> The International Red Cross and Red Crescent Movement, in which all Societies have equal status, is worldwide.</li>
+                                </ul>
+
+                                <h3>Our Team</h3>
+                                <p>Our Ludhiana branch is managed by a dedicated committee of office-bearers and supported by a robust team of staff and hundreds of selfless volunteers from all walks of life. It is their passion and commitment that brings our mission to life every single day.</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            /**
+             * Renders the Contact Us page
+             * @returns {string} HTML string for the Contact page.
+             */
+            function renderContactPage() {
+                return `
+                    <div class="bg-gray-50 py-16">
+                        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div class="text-center">
+                                <h2 class="text-base font-semibold text-red-700 tracking-wide uppercase">Get in Touch</h2>
+                                <p class="mt-2 text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                                    Contact Us
+                                </p>
+                                <p class="mt-4 max-w-2xl mx-auto text-xl text-gray-600">
+                                    We'd love to hear from you, whether you're interested in volunteering, donating, or need our assistance.
+                                </p>
+                            </div>
+                            
+                            <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <!-- Contact Info -->
+                                <div class="bg-white p-8 rounded-lg shadow-lg">
+                                    <h3 class="text-2xl font-semibold text-gray-900 mb-6">Our Office</h3>
+                                    <div class="space-y-4 text-gray-700">
+                                        <div class="flex items-start">
+                                            <svg class="flex-shrink-0 h-6 w-6 text-red-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                            <span class="ml-3">
+                                                Red Cross Building, Sarabha Nagar<br>
+                                                Near Main Market, Ludhiana, Punjab - 141001
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <svg class="flex-shrink-0 h-6 w-6 text-red-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                                            <span class="ml-3">+91-161-1234567</span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <svg class="flex-shrink-0 h-6 w-6 text-red-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                            <span class="ml-3">info@redcrossludhiana.org</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Contact Form -->
+                                <div class="bg-white p-8 rounded-lg shadow-lg">
+                                    <h3 class="text-2xl font-semibold text-gray-900 mb-6">Send Us a Message</h3>
+                                    <form action="#" method="POST" class="space-y-6">
+                                        <div>
+                                            <label for="name" class="block text-sm font-medium text-gray-800">Full Name</label>
+                                            <input type="text" name="name" id="name" autocomplete="name" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm" required>
+                                        </div>
+                                        <div>
+                                            <label for="email" class="block text-sm font-medium text-gray-800">Email Address</label>
+                                            <input id="email" name="email" type="email" autocomplete="email" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm" required>
+                                        </div>
+                                        <div>
+                                            <label for="message" class="block text-sm font-medium text-gray-800">Message</label>
+                                            <textarea id="message" name="message" rows="4" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm" required></textarea>
+                                        </div>
+                                        <div>
+                                            <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-red-700 hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                                Send Message
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            /**
+             * Renders the footer
+             * @returns {string} HTML string for the footer.
+             */
+            function renderFooter() {
+                return `
+                    <footer class="bg-gray-800 text-gray-300">
+                        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+                            <div class="md:flex md:items-center md:justify-between">
+                                <div class="flex justify-center space-x-6 md:order-2">
+                                    <!-- Social media icon placeholders -->
+                                    <a href="#" class="text-gray-400 hover:text-gray-300">
+                                        <span class="sr-only">Facebook</span>
+                                        <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" />
+                                        </svg>
+                                    </a>
+                                    <a href="#" class="text-gray-400 hover:text-gray-300">
+                                        <span class="sr-only">Twitter</span>
+                                        <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                          <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
+                                        </svg>
+                                    </a>
+                                    <a href="#" class="text-gray-400 hover:text-gray-300">
+                                        <span class="sr-only">Instagram</span>
+                                        <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 16c-3.314 0-6-2.686-6-6s2.686-6 6-6 6 2.686 6 6-2.686 6-6 6zm-2-6a2 2 0 114 0 2 2 0 01-4 0z" clip-rule="evenodd" />
+                                            <path d="M16.5 7.5a1.5 1.5 0 100 3 1.5 1.5 0 000-3z" />
+                                        </svg>
+                                    </a>
+                                </div>
+                                <div class="mt-8 md:mt-0 md:order-1">
+                                    <p class="text-center text-base text-gray-400">
+                                        &copy; ${new Date().getFullYear()} Indian Red Cross Society, Ludhiana. All rights reserved.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </footer>
+                `;
+            }
+
+            /**
+             * The main render function. Clears the app and re-builds the UI.
+             */
+            function render() {
+                // Build the complete UI string
+                const html = `
+                    ${renderHeader()}
+                    <main class="min-h-screen">
+                        ${renderPageContent()}
+                    </main>
+                    ${renderFooter()}
+                `;
+                
+                // Set the inner HTML of the app
+                app.innerHTML = html;
+                
+                // Add event listeners *after* the HTML is in the DOM
+                addEventListeners();
+            }
+
+            /**
+             * Attaches all necessary event listeners to the new DOM elements
+             */
+            function addEventListeners() {
+                // Navigation links (desktop and mobile)
+                document.querySelectorAll('.nav-link').forEach(link => {
+                    link.addEventListener('click', handleNavClick);
+                });
+                
+                // Mobile menu toggle
+                const menuToggle = document.getElementById('menu-toggle');
+                if (menuToggle) {
+                    menuToggle.addEventListener('click', toggleMenu);
+                }
+                
+                // "Learn More" buttons on activity cards
+                document.querySelectorAll('.view-activity-btn').forEach(btn => {
+                    btn.addEventListener('click', handleActivityClick);
+                });
+                
+                // "Back to Activities" button on detail page
+                const backBtn = document.getElementById('back-to-activities');
+                if (backBtn) {
+                    backBtn.addEventListener('click', handleBackToActivities);
+                }
+                
+                // Prevent form submission (for demo)
+                const contactForm = document.querySelector('form');
+                if (contactForm) {
+                    contactForm.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        // In a real app, you'd handle form submission here.
+                        // For this demo, we'll just show a simple (non-alert) message.
+                        const formButton = contactForm.querySelector('button[type="submit"]');
+                        formButton.textContent = 'Message Sent! (Demo)';
+                        formButton.disabled = true;
+                        setTimeout(() => {
+                           formButton.textContent = 'Send Message';
+                           formButton.disabled = false; 
+                        }, 3000);
+                    });
+                }
+            }
+
+            // --- INITIAL RENDER ---
+            // Call render() once to build the initial UI when the page loads.
+            render();
+
+        });
+    </script>
+
+</body>
+</html>
